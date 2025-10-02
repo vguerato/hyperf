@@ -11,6 +11,7 @@ declare(strict_types=1);
  */
 use Hyperf\Metric\Adapter\Prometheus\Constants;
 use Hyperf\Metric\Adapter\Prometheus\MetricFactory;
+use Hyperf\Metric\Adapter\NoOp\MetricFactory as NoOpMetricFactory;
 
 use function Hyperf\Support\env;
 
@@ -21,6 +22,9 @@ return [
     'enable_default_metric' => env('TELEMETRY_ENABLE_DEFAULT_TELEMETRY', true),
     'default_metric_interval' => (float) env('DEFAULT_METRIC_INTERVAL', 5),
     'metric' => [
+        'noop' => [
+            'driver' => NoOpMetricFactory::class,
+        ],
         'prometheus' => [
             'driver' => MetricFactory::class,
             'mode' => Constants::SCRAPE_MODE,
