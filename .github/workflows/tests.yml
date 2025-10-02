@@ -10,6 +10,20 @@ jobs:
   test:
     runs-on: ubuntu-latest
     
+    env:
+      APP_NAME: tecnofit
+      APP_ENV: testing
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: hyperf_test
+      DB_USERNAME: hyperf
+      DB_PASSWORD: hyperf
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      METRIC_DRIVER: noop
+      TELEMETRY_USE_STANDALONE_PROCESS: false
+      TELEMETRY_ENABLE_DEFAULT_TELEMETRY: false
+    
     services:
       mysql:
         image: mysql:8.0
@@ -40,19 +54,6 @@ jobs:
 
     - name: Install Dependencies
       run: composer install --prefer-dist --no-progress
-
-    - name: Copy .env
-      run: cp .env.example .env
-
-    - name: Configure Environment
-      run: |
-        sed -i 's/DB_HOST=mysql/DB_HOST=127.0.0.1/' .env
-        sed -i 's/REDIS_HOST=redis/REDIS_HOST=127.0.0.1/' .env
-        sed -i 's/MAIL_HOST=mailhog/MAIL_HOST=127.0.0.1/' .env
-        sed -i 's/SYSLOG_HOST=promtail/SYSLOG_HOST=127.0.0.1/' .env
-        sed -i 's/DB_DATABASE=hyperf/DB_DATABASE=hyperf_test/' .env
-        sed -i 's/METRIC_DRIVER=prometheus/METRIC_DRIVER=noop/' .env  
-
     - name: Run Migrations
       run: php bin/hyperf.php migrate
       env:
