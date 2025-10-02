@@ -1,0 +1,9 @@
+.idea
+.DS_Store
+.phpunit*
+*.log
+.env
+runtime/*
+vendor/*
+!vendor/.gitignore
+.php_cs.cache

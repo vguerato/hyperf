@@ -1,0 +1,146 @@
+version: '3'
+
+services:
+  hyperf:
+    container_name: hyperf
+    image: hyperf-skeleton
+    build:
+      context: .
+    volumes:
+      - ./:/opt/www
+    ports:
+      - 8080:9501
+      - 9502:9502
+    environment:
+      - APP_ENV=dev
+      - SCAN_CACHEABLE=false
+    entrypoint: ["/bin/sh", "/opt/www/docker-entrypoint.sh"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      mailhog:
+        condition: service_started
+
+  mysql:
+    container_name: mysql
+    image: mysql:8.0
+    ports:
+      - ${DB_PORT:-3306}:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-root}
+      - MYSQL_DATABASE=${DB_DATABASE:-hyperf}
+      - MYSQL_USER=${DB_USERNAME:-hyperf}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-hyperf}
+    volumes:
+      - mysqldata:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    container_name: redis
+    image: redis:7-alpine
+    ports:
+      - ${REDIS_PORT:-6379}:6379
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mailhog:
+    container_name: mailhog
+    image: mailhog/mailhog:latest
+    ports:
+      - 1025:1025
+      - 8025:8025
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  swagger-ui:
+    container_name: swagger-ui
+    image: swaggerapi/swagger-ui:latest
+    ports:
+      - 8081:8080
+    environment:
+      - SWAGGER_JSON=/openapi.yaml
+      - URLS=[{"url":"/openapi.yaml","name":"Tecnofit API"}]
+    volumes:
+      - ./openapi.yaml:/openapi.yaml:ro
+    networks:
+      - default
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    ports:
+      - 9090:9090
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    networks:
+      - default
+
+  loki:
+    container_name: loki
+    image: grafana/loki:latest
+    ports:
+      - 3100:3100
+    volumes:
+      - ./observability/loki/loki-config.yml:/etc/loki/loki-config.yml
+    command: -config.file=/etc/loki/loki-config.yml
+    networks:
+      - default
+
+  promtail:
+    container_name: promtail
+    image: grafana/promtail:latest
+    ports:
+      - 1514:1514/udp
+    volumes:
+      - ./observability/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml
+    command: -config.file=/etc/promtail/promtail-config.yml
+    depends_on:
+      - loki
+    networks:
+      - default
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - default
+
+volumes:
+  mysqldata:
+  redisdata:
+
+networks:
+  default:
+    name: hyperf

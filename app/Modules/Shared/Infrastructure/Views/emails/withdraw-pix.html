@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>{{subject}}</title>
+</head>
+<body>
+    <h1>Tecnofit - Notificação de Saque PIX</h1>
+    
+    <p>Olá,</p>
+    
+    <p>Seu saque PIX foi <strong>{{status}}</strong>.</p>
+    
+    <p><strong>Informações do Saque:</strong></p>
+    <ul>
+        <li>Data e Hora: {{dateTime}}</li>
+        <li>Valor: R$ {{amount}}</li>
+        <li>Tipo de Chave PIX: {{pixType}}</li>
+        <li>Chave PIX: {{pixKey}}</li>
+    </ul>
+    
+    {{errorSection}}
+    
+    <p>{{messageTitle}}</p>
+    <p>{{messageBody}}</p>
+    
+    <hr>
+    
+    <p><small>Esta é uma mensagem automática. Por favor, não responda este email.</small></p>
+    <p><small>&copy; {{year}} Tecnofit. Todos os direitos reservados.</small></p>
+</body>
+</html>

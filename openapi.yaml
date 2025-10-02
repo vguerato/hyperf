@@ -1,0 +1,215 @@
+openapi: 3.1.0
+info:
+  title: Tecnofit API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /api/v1/accounts:
+    get:
+      operationId: listAccounts
+      tags: [Accounts]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Account'
+
+    post:
+      operationId: createAccount
+      tags: [Accounts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Account'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /account/{accountId}/withdraw:
+    parameters:
+      - name: accountId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      operationId: listWithdraws
+      tags: [Withdraws]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Withdraw'
+
+    post:
+      operationId: createWithdraw
+      tags: [Withdraws]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithdrawRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Withdraw'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+components:
+  schemas:
+    Account:
+      type: object
+      required: [id, name, balance]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        balance:
+          type: number
+          format: float
+
+    CreateAccountRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+
+    Withdraw:
+      type: object
+      required: [id, method, amount, scheduled, status, done, error]
+      properties:
+        id:
+          type: string
+          format: uuid
+        method:
+          type: string
+          enum: [PIX]
+        amount:
+          type: number
+          format: float
+        scheduled:
+          type: boolean
+        scheduled_for:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          enum: [pending, done, denied]
+        done:
+          type: boolean
+        error:
+          type: boolean
+        error_reason:
+          type: string
+          nullable: true
+        done_at:
+          type: string
+          format: date-time
+          nullable: true
+        denied_at:
+          type: string
+          format: date-time
+          nullable: true
+        pix:
+          $ref: '#/components/schemas/Pix'
+
+    WithdrawRequest:
+      type: object
+      required: [method, amount]
+      properties:
+        method:
+          type: string
+          enum: [PIX]
+        amount:
+          type: number
+          format: float
+          minimum: 0.01
+        schedule:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2025-10-15 14:00'
+        pix:
+          $ref: '#/components/schemas/PixRequest'
+
+    PixRequest:
+      type: object
+      required: [type, key]
+      properties:
+        type:
+          type: string
+          enum: [email]
+        key:
+          type: string
+          format: email
+
+    Pix:
+      type: object
+      required: [type, key]
+      properties:
+        type:
+          type: string
+        key:
+          type: string
+
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+  responses:
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'

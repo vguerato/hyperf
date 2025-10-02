@@ -1,0 +1,33 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'tecnofit-monitor'
+    environment: 'development'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'hyperf-app'
+    scrape_interval: 5s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['hyperf:9502']
+        labels:
+          service: 'tecnofit-api'
+          environment: 'development'
+
+  - job_name: 'mysql'
+    static_configs:
+      - targets: ['mysql:3306']
+        labels:
+          service: 'mysql'
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+        labels:
+          service: 'redis'
+
