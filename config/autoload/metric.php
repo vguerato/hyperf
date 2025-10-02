@@ -19,7 +19,7 @@ return [
     'default' => env('METRIC_DRIVER', 'prometheus'),
     'use_standalone_process' => env('TELEMETRY_USE_STANDALONE_PROCESS', true),
     'enable_default_metric' => env('TELEMETRY_ENABLE_DEFAULT_TELEMETRY', true),
-    'default_metric_interval' => env('DEFAULT_METRIC_INTERVAL', 5),
+    'default_metric_interval' => (float) env('DEFAULT_METRIC_INTERVAL', 5),
     'metric' => [
         'prometheus' => [
             'driver' => MetricFactory::class,
@@ -33,7 +33,7 @@ return [
             'scrape_path' => env('PROMETHEUS_SCRAPE_PATH', '/metrics'),
             'push_host' => env('PROMETHEUS_PUSH_HOST', '0.0.0.0'),
             'push_port' => env('PROMETHEUS_PUSH_PORT', '9091'),
-            'push_interval' => env('PROMETHEUS_PUSH_INTERVAL', 5),
+            'push_interval' => (float) env('PROMETHEUS_PUSH_INTERVAL', 5),
         ],
     ],
 ];
